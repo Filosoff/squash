@@ -22,7 +22,12 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "start": "parcel"
+    "start": "parcel",
+    "prebuild-dev": "shx rm -rf dist/*",
+    "build-dev": "parcel build ./src/index.html --no-optimize --public-url ./",
+    "prebuild": "shx rm -rf dist/*",
+    "build": "parcel build ./src/index.html --public-url ./",
+    "push-gh-pages": "push-dir --dir=dist --branch=gh-pages --cleanup --verbose"
   },
   "eslintConfig": {
     "extends": [
@@ -44,7 +49,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.201",
-    "gh-pages": "^6.1.0",
-    "process": "^0.11.10"
+    "process": "^0.11.10",
+    "shx": "^0.3.4"
   }
 }
