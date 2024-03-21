@@ -16,21 +16,20 @@ import HomeComponent from "./HomeComponent";
 const pages = [
   {
     label: 'Home',
-    path: '/',
+    path: '/squash',
     icon: <Leaderboard />,
     component: <HomeComponent />,
   },
   {
     label: 'Add',
-    path: '/add',
-    link: '/add',
+    path: '/squash/add',
     icon: <Add />,
     component: <AddComponent />,
   },
   {
     label: 'Export',
     icon: <Settings />,
-    path: '/export',
+    path: '/squash/export',
     component: <ExportComponent/>,
   },
 ];
