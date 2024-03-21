@@ -1,0 +1,40 @@
+{
+  "name": "mooduck",
+  "homepage": "https://filosoff.github.io/squash",
+  "version": "1.0.0",
+  "description": "",
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel",
+    "prebuild-dev": "shx rm -rf dist/*",
+    "build-dev": "parcel build ./src/index.html --no-optimize --public-url ./",
+    "prebuild": "shx rm -rf dist/*",
+    "build": "parcel build ./src/index.html --public-url ./",
+    "deploy": "gh-pages -d dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.3",
+    "@mui/material": "^5.15.3",
+    "@types/react": "^18.2.39",
+    "@types/react-dom": "^18.2.17",
+    "bem-cn": "^3.0.1",
+    "highcharts": "^11.4.0",
+    "highcharts-react-official": "^3.2.1",
+    "moment": "^2.30.1",
+    "parcel": "^2.10.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "usehooks-ts": "^3.0.1"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1",
+    "@types/react-dom": "^18.2.17",
+    "process": "^0.11.10"
+  }
+}
