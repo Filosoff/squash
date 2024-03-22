@@ -7,7 +7,7 @@ import {
   CssBaseline,
   Paper,
 } from "@mui/material";
-import { Add, Settings, Leaderboard } from '@mui/icons-material';
+import { SportsTennis, ImportExport, Leaderboard } from '@mui/icons-material';
 import { useState } from "react";
 import AddComponent from "./AddComponent";
 import ExportComponent from "./ExportComponent";
@@ -23,12 +23,20 @@ const pages = [
   {
     label: 'Add',
     path: '/squash/add',
-    icon: <Add />,
+    icon: <SportsTennis />,
+    style: {
+      width: '2px',
+      height: '71px',
+      top: '-39px',
+      background: 'white',
+      border: '1px solid #ddd',
+      borderRadius: '99px',
+    },
     component: <AddComponent />,
   },
   {
     label: 'Export',
-    icon: <Settings />,
+    icon: <ImportExport />,
     path: '/squash/export',
     component: <ExportComponent/>,
   },
@@ -61,7 +69,7 @@ const AppComponent = () => {
           } }
         >
           { pages.map(page => (
-            <BottomNavigationAction key={ page.label } icon={ page.icon } component={RouterLink} to={page.path} />
+            <BottomNavigationAction key={ page.label } icon={ page.icon } component={RouterLink} to={page.path} style={page.style || {}} />
           )) }
         </BottomNavigation>
       </Paper>
