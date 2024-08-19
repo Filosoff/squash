@@ -1,48 +1,69 @@
 import { Players } from "./statics";
-import { Game } from "./types";
+import { GameHistory } from "./types";
+
+const getWinnerScore = (loserScore: number) => Math.max(11, loserScore + 2);
 
 const getStats = () => {
-  const games: Game[] = JSON.parse(localStorage.getItem("games")!) || [];
-
-  if (!games.length) {
-    return false;
+  let games: GameHistory;
+  try {
+    games = JSON.parse(localStorage.getItem("games") || "{}");
+  } catch {
+    games = {};
   }
-  const alfaGames = games.filter(g => g.winner === Players.alfa);
-  const deltaGames = games.filter(g => g.winner === Players.delta);
+  const stats = {
+    sessionsTotal: 0,
+    gamesTotal: 0,
+    gamesPerSession: 0,
+    scoreTotal: 0,
+    alfaGames: 0,
+    alfaScore: 0,
+    alfaRateGames: 0,
+    alfaRateScore: 0,
+    betaGames: 0,
+    betaScore: 0,
+    betaRateGames: 0,
+    betaRateScore: 0,
+    alfaScoreLog: [] as number[],
+    betaScoreLog: [] as number[],
+    sessionsLengthLog: [] as number[],
+  }
 
-  const calcScore = (player: Players) => {
-    let score = 0;
-    games.forEach(game => {
-      const s = game.winner === player ? game.score.win : game.score.lose;
-      score += s;
+  if (!Object.keys(games).length) {
+    return stats;
+  }
+
+  stats.sessionsTotal = Object.keys(games).length;
+  for (const [date, log] of Object.entries(games)) {
+    stats.sessionsLengthLog.push(log.length);
+    log.forEach(g => {
+      stats.gamesTotal++;
+      const loserScore = g[1];
+      const winnerScore = getWinnerScore(loserScore);
+      if (g[0] === Players.alfa) {
+        stats.alfaScore += winnerScore;
+        stats.betaScore += loserScore;
+        stats.alfaGames++;
+        stats.alfaScoreLog.push(winnerScore);
+        stats.betaScoreLog.push(loserScore);
+      } else {
+        stats.alfaScore += loserScore;
+        stats.betaScore += winnerScore;
+        stats.betaGames++;
+        stats.alfaScoreLog.push(loserScore);
+        stats.betaScoreLog.push(winnerScore);
+      }
     });
-    return score;
   }
 
-  const result: any = {
-    gamesTotal: games.length,
-    scoreTotal: games.reduce((acc: number, game) => {
-      acc += game.score.win;
-      acc += game.score.lose;
-      return acc;
-    }, 0),
-    alfaGames: alfaGames.length,
-    deltaGames: deltaGames.length,
-  };
+  stats.scoreTotal = stats.alfaScore + stats.betaScore;
+  stats.alfaRateGames = (stats.alfaGames / stats.gamesTotal) * 100;
+  stats.betaRateGames = (stats.betaGames / stats.gamesTotal) * 100;
+  stats.alfaRateScore = (stats.alfaScore / stats.scoreTotal) * 100;
+  stats.betaRateScore = (stats.betaScore / stats.scoreTotal) * 100;
 
-  result.alfaScore = calcScore(Players.alfa);
-  result.deltaScore = calcScore(Players.delta);
+  stats.gamesPerSession = stats.sessionsLengthLog.reduce((a, b) => a + b, 0) / stats.sessionsLengthLog.length;
 
-  result.alfaGamesPercent = Math.round(alfaGames.length / games.length * 100);
-  result.alfaScorePercent = Math.round(result.alfaScore / result.scoreTotal * 100);
-  result.deltaGamesPercent = 100 - result.alfaGamesPercent;
-  result.deltaScorePercent = 100 - result.alfaScorePercent;
-
-  const groupedByDate: Record<string, number[]> = Object.groupBy(games, g => g.date);
-  result.sessions = Object.values(groupedByDate).map(games => games.length);
-  result.gamesPerSession = Math.round(result.gamesTotal / result.sessions.length);
-
-  return result;
+  return stats;
 }
 
 

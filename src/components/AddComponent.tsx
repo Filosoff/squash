@@ -1,120 +1,137 @@
 import moment from 'moment';
-import { Alert, Button, Grid, Step, StepContent, StepLabel, Stepper, TextField } from '@mui/material';
-import React, { useState } from 'react';
+import { Box, Button, Table, TableBody, TableCell, TableRow, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import Grid from '@mui/material/Unstable_Grid2';
+import React, { useEffect, useState } from 'react';
 import { Players } from "../utils/statics";
-import { Game } from '../utils/types';
-import { useLocalStorage } from 'usehooks-ts';
+import { Game, GameHistory } from '../utils/types';
+import { useLocalStorage, useReadLocalStorage } from 'usehooks-ts';
 
 const AddComponent = () => {
-  const [games, setGames] = useLocalStorage<Game[]>('games', []);
+  const alfaName = useReadLocalStorage("alfaName") as string;
+  const betaName = useReadLocalStorage("betaName") as string;
+  const [games, setGames] = useLocalStorage<GameHistory>('games', {});
   const [step, setStep] = useState(0);
-  const [success, setSuccess] = useState<string>()
-  const [error, setError] = useState<string>()
-  const [date, setDate] = useState(moment());
   const [winner, setWinner] = useState<Players | undefined>(undefined);
-  const [score, setScore] = useState<number>(0);
+  const [loserScore, setLoserScore] = useState<number>(0);
 
   const nextStep = () => {
     setStep(step + 1);
   }
 
-  const onSaveClick = () => {
-    setStep(99);
-    if (winner === undefined || !score) {
-      setSuccess('');
-      console.error(winner, score);
-      setError('Cant touch this!');
+  useEffect(() => {
+    if (winner === undefined || !loserScore) {
       return;
     }
 
-    const winnerScore = Math.max(11, score + 2);
-    const record: Game = {
-      date: date.format('DD-MM-YYYY'),
-      winner,
-      score: {
-        lose: score,
-        win: winnerScore,
-      }
+    const todayDate: string = moment().format('DD-MM-YYYY');
+    const record: Game = [winner, loserScore];
+    const gamesCopy = JSON.parse(JSON.stringify(games));
+    if (!gamesCopy.hasOwnProperty(todayDate)) {
+      gamesCopy[todayDate] = [];
     }
+    gamesCopy[todayDate].push(record);
+    console.error(record);
+    console.error(gamesCopy);
+    setGames(gamesCopy);
+    setStep(0);
+  }, [loserScore]);
 
-    setGames([...games, record]);
-    setError('');
-    setSuccess(`Logged ${score} - ${winnerScore}`);
-  }
-
-  const getDialPad = () => (
-    <Grid container columns={ 4 }>
-      {
-        [5, 6, 7, 8, 9, 10, 11, 12].map(s => (
-          <Grid xs={ 1 } key={ `setScore-${ s }` } sx={{ mb: 1}} item>
-            <Button variant="outlined" onClick={ () => { setScore(s); } } size="large">{ s }</Button>
-          </Grid>
-        ))
-      }
-    </Grid>
+  const getPlayerSelector = () => (
+    <Box>
+      <Typography variant="h4" sx={ { mb: 2 } }>The winner is..</Typography>
+      <Grid container spacing={ 2 } alignItems="center">
+        <Grid xs={ 6 }>
+          <Box textAlign="left">
+            <Button size="large" variant="contained" onClick={ () => { setWinner(Players.alfa); nextStep(); } }>
+              { alfaName }
+            </Button>
+          </Box>
+        </Grid>
+        <Grid xs={ 6 }>
+          <Box textAlign="right">
+            <Button size="large" variant="contained" onClick={ () => { setWinner(Players.beta); nextStep(); } }>
+              { betaName }
+            </Button>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   )
 
-  const getStepper = () => <Stepper activeStep={ step } orientation="vertical">
-    <Step key='step1' completed={ step > 0 }>
-      <StepLabel>Step 1: Date</StepLabel>
-      <StepContent>
-        <TextField
-          disabled
-          label="Date"
-          type="text"
-          defaultValue={ date.format('DD MMM YYYY') }
-          sx={ { mt: 3 } }
-        /><br/>
-        <Button variant="contained" sx={ { mt: 1 } } size="large" onClick={ nextStep }>Correct</Button>
-      </StepContent>
-    </Step>
-    <Step key='step2' completed={ step > 1 }>
-      <StepLabel>Step 2: Winner</StepLabel>
-      <StepContent sx={ { mt: 2 } }>
-        <Button variant="contained" onClick={ () => {
-          setWinner(Players.alfa);
-          nextStep();
-        } } sx={ { mr: 5 } }>Alfa</Button>
-        <Button variant="contained" onClick={ () => {
-          setWinner(Players.delta);
-          nextStep();
-        } }>Delta</Button>
-      </StepContent>
-    </Step>
-    <Step key='step3' completed={ step > 2 }>
-      <StepLabel>Step 3: Score</StepLabel>
-      <StepContent>
-        <TextField
-          label="Loser score"
-          type="number"
-          sx={ { mt: 3, mb: 1 } }
-          value={ score || '' }
-          onChange={ e => setScore(+e.target.value) }
-        />
-        <br/>
-        { getDialPad() }
-        <Button variant="contained" sx={ { mt: 1 } } size="large" onClick={ onSaveClick }>Save</Button>
-      </StepContent>
-    </Step>
-  </Stepper>
+  const getScoreSelector = () => (
+    <Box>
+      <Typography variant="h4" sx={ { mb: 2 } }>Loser score is..</Typography>
+      <Grid container columns={ 3 } spacing={2}>
+        {
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(s => (
+            <Grid xs={ 1 } key={ `setScore-${ s }` } sx={ { mb: 1 } }>
+              <Button variant="outlined" sx={{ width: '100%', height: '5em' }} onClick={ () => {
+                setLoserScore(s);
+              } } >{ s }</Button>
+            </Grid>
+          ))
+        }
+      </Grid>
+    </Box>
+  )
 
-  return (
-    <div>
-      <h1>Add game record</h1>
-      { success && (
-        <Alert severity="success" sx={ { mb: 2 } }>
-          { success }
-        </Alert>
-      ) }
-      { error && (
-        <Alert severity="error" sx={ { mb: 2 } }>
-          { error }
-        </Alert>
-      ) }
-      { step < 10 && getStepper() }
-      { step > 10 && <Button onClick={ () => setStep(0) }>Add more</Button> }
-    </div>
-  );
+  const getGamesList = () => {
+    const todayDate: string = moment().format('DD-MM-YYYY');
+    const todayGames = games[todayDate] || [];
+    return (
+      <Box>
+        <Grid container spacing={ 2 } sx={ { mb: 2 } } alignItems="center">
+          <Grid xs={ 9 }>
+            <Typography variant="h4">{ moment().format('DD MMM') }</Typography>
+            <Typography variant="h6">Games played: { todayGames.length }</Typography>
+          </Grid>
+          <Grid xs={ 3 }>
+            <Box textAlign="right">
+              <Button size="large" variant="contained" onClick={ nextStep }>
+                <AddIcon/>
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+        <Table size="small">
+          <TableBody>
+            <TableRow>
+              <TableCell align="left">{ alfaName }</TableCell>
+              <TableCell align="right">{ betaName }</TableCell>
+            </TableRow>
+            { todayGames.map((g, index) => (
+              <TableRow key={ index } sx={ { p: 0 } }>
+                <TableCell
+                  align="left"
+                  sx={ { fontWeight: g[0] === Players.alfa ? 800 : 400 } }
+                >
+                  { g[0] === Players.beta ? g[1] : Math.max(11, g[1] + 2) }
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={ { fontWeight: g[0] === Players.beta ? 800 : 400 } }
+                >
+                  { g[0] === Players.alfa ? g[1] : Math.max(11, g[1] + 2) }
+                </TableCell>
+              </TableRow>
+            )) }
+          </TableBody>
+        </Table>
+      </Box>
+    );
+  }
+
+  switch (step) {
+    case 0:
+      return getGamesList();
+    case 1:
+      return getPlayerSelector();
+    case 2:
+      return getScoreSelector();
+    default:
+      return getGamesList();
+  }
 }
 
 export default AddComponent;
